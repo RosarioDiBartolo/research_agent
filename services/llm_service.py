@@ -8,8 +8,8 @@ from typing import Dict, List, Optional, Any
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import BaseMessage, HumanMessage, SystemMessage
 
-from research_agent.core.models import ResearchConfig, ResearchAssessment, ConfidenceLevel
-from research_agent.utils.prompts import PromptTemplates
+from core.models import ResearchConfig, ResearchAssessment, ConfidenceLevel
+from utils.prompts import PromptTemplates
 
 
 logger = logging.getLogger(__name__)

@@ -3,7 +3,7 @@ Prompt templates for the research agent system.
 """
 
 from typing import List, Set
-from research_agent.core.models import ResearchContext, ResearchAssessment
+from core.models import ResearchContext, ResearchAssessment
 
 
 class PromptTemplates:

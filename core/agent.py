@@ -6,13 +6,13 @@ import logging
 from typing import List, Dict, Any
 from datetime import datetime
 
-from research_agent.core.models import (
+from core.models import (
     ResearchContext, ResearchResult, ResearchConfig, 
     ResearchStatus, IterationResult, SearchQuery
 )
-from research_agent.services.llm_service import LLMService
-from research_agent.services.search_service import SearchService
-from research_agent.utils.helpers import format_search_results, validate_input
+from services.llm_service import LLMService
+from services.search_service import SearchService
+from utils.helpers import format_search_results, validate_input
 
 
 logger = logging.getLogger(__name__)

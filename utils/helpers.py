@@ -8,7 +8,7 @@ from typing import List, Dict, Any, Optional
 from urllib.parse import urlparse
 from datetime import datetime
 
-from research_agent.core.models import SearchResult
+from core.models import SearchResult
 
 
 logger = logging.getLogger(__name__)

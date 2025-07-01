@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
 from langchain.tools import TavilySearchResults
 
-from research_agent.core.models import SearchResult, SearchQuery, ResearchConfig
+from core.models import SearchResult, SearchQuery, ResearchConfig
 
 
 logger = logging.getLogger(__name__)
