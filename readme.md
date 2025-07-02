@@ -19,7 +19,7 @@ An autonomous, iterative research system powered by LLMs and web search. It perf
 ## 🧑‍💻 Usage
 
 ```bash
-git clone https://github.com/yourusername/AdvancedResearchAgent.git
-cd AdvancedResearchAgent
+git clone https://github.com/yourusername/research_agent.git
+cd research_agent
 pip install -r requirements.txt
 python -m main
