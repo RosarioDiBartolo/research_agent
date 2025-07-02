@@ -147,7 +147,7 @@ class ResearchResult:
 @dataclass
 class ResearchConfig:
     """Configuration for the research agent"""
-    model_name: str = "gpt-4"
+    model_name: str = "gemini-2.5-flash"
     temperature: float = 0.2
     max_iterations: int = 7
     max_search_results_per_query: int = 8

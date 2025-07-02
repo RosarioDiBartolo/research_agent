@@ -8,7 +8,7 @@ from datetime import datetime
 import asyncio
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
-from langchain.tools import TavilySearchResults
+from langchain_tavily import TavilySearch
 
 from core.models import SearchResult, SearchQuery, ResearchConfig
 
@@ -21,7 +21,7 @@ class SearchService:
     
     def __init__(self, config: ResearchConfig):
         self.config = config
-        self.search_tool = TavilySearchResults(
+        self.search_tool = TavilySearch(
             max_results=config.max_search_results_per_query
         )
         self.executor = ThreadPoolExecutor(max_workers=3)
@@ -31,10 +31,10 @@ class SearchService:
         timeout = timeout or self.config.search_timeout
         
         try:
+            
             # Use ThreadPoolExecutor for timeout control
             future = self.executor.submit(self.search_tool.run, query)
-            results = future.result(timeout=timeout)
-            
+            results = future.result(timeout=timeout)["results"]
             if isinstance(results, list):
                 return results
             elif isinstance(results, str):
@@ -59,7 +59,13 @@ class SearchService:
                 print(f"🔍 Searching: {query}")
                 
             raw_results = self.execute_search(query)
+
+
             processed_results = self._process_search_results(raw_results, query)
+
+           
+            
+
             all_results[query] = processed_results
             
         return all_results

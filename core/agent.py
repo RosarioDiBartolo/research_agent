@@ -151,6 +151,7 @@ class ResearchAgent:
             [q.query for q in search_queries]
         )
         
+        
         # Process and filter results
         new_search_results = []
         new_sources_count = 0
