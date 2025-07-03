@@ -1,18 +1,20 @@
 
 # === USAGE EXAMPLE ===
+from langchain_ollama import OllamaLLM
 from core.agent import ResearchAgent
 from core.models import ResearchConfig
 
+from models import gemini as model
 
 def main():
     """Example usage of the Advanced Research Agent"""
     
     # Initialize the research agent
+     
     agent = ResearchAgent(
+        model=model,
         config= ResearchConfig(
-            verbose=True,
-        model_name="gpt-4",  # or "gpt-3.5-turbo" for faster/cheaper option
-        temperature=0.2,
+        verbose=True,
         max_iterations=5
         )
     )

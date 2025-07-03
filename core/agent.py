@@ -13,7 +13,7 @@ from core.models import (
 from services.llm_service import LLMService
 from services.search_service import SearchService
 from utils.helpers import format_search_results, validate_input
-
+from langchain_core.language_models.chat_models import BaseChatModel
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +24,9 @@ class ResearchAgent:
     by continuously building context and exploring new angles.
     """
     
-    def __init__(self, config: ResearchConfig = None):
+    def __init__(self, model: BaseChatModel, config: ResearchConfig = None):
         self.config = config or ResearchConfig()
-        self.llm_service = LLMService(self.config)
+        self.llm_service = LLMService(model, self.config)
         self.search_service = SearchService(self.config)
         
         # Configure logging

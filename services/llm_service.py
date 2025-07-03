@@ -13,6 +13,7 @@ from constant import GeminiKey
 from core.models import ResearchConfig, ResearchAssessment, ConfidenceLevel
 from utils.prompts import PromptTemplates
 from dotenv import load_dotenv
+from langchain_core.language_models.chat_models import BaseChatModel
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -21,14 +22,9 @@ logger = logging.getLogger(__name__)
 class LLMService:
     """Service for managing all interactions with language models"""
     
-    def __init__(self, config: ResearchConfig):
+    def __init__(self, model: BaseChatModel, config: ResearchConfig):
         self.config = config
-        self.llm =   ChatGoogleGenerativeAI(
-          model=config.model_name ,  # Adjust if model name differs per provider
-          google_api_key=GeminiKey,  # Use the Gemini API key
-     
-            temperature=config.temperature
-        )
+        self.llm =   model 
         try:
             self.llm.invoke("Simple test")
         except Exception as e:

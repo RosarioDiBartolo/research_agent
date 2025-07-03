@@ -147,8 +147,6 @@ class ResearchResult:
 @dataclass
 class ResearchConfig:
     """Configuration for the research agent"""
-    model_name: str = "gemini-2.5-flash"
-    temperature: float = 0.2
     max_iterations: int = 7
     max_search_results_per_query: int = 8
     min_completeness_score: float = 80.0
@@ -156,4 +154,6 @@ class ResearchConfig:
     enable_concept_extraction: bool = True
     enable_source_validation: bool = True
     verbose: bool = True
-    custom_prompts: Dict[str, str] = field(default_factory=dict)
+
+ 
+ 
