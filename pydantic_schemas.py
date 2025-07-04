@@ -41,9 +41,7 @@ class QueryRefinementResponse(BaseModel):
     refined_queries: List[str]
 
 
-class FinalAnswerResponse(BaseModel):
-    final_answer: str
-
+ 
 
 class ErrorRecoveryStrategy(BaseModel):
     strategy: str

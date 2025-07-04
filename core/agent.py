@@ -89,6 +89,9 @@ class ResearchAgent:
                     if self.config.verbose:
                         print(f"✅ Research complete: {assessment.reasoning}")
                     break
+
+                print("\n--Current Summary--")
+                print( context.current_summary, end="\n")
             
             # Finalize research
             context.status = ResearchStatus.COMPLETED

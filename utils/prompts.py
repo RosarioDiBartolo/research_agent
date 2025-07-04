@@ -31,6 +31,10 @@ Based on the current knowledge and gaps identified, generate 2-3 strategic searc
 4. Avoid already-used sources
 5. Build upon specific details mentioned in the summary
 
+For legal questions: Focus on statutes, case law, constitutional articles, regulations
+For technical questions: Focus on standards, specifications, research papers, expert analyses
+For current events: Focus on recent developments, official statements, expert commentary
+
 Return your response in this format:
 - search_queries: List of queries
 - research_rationale: Why these queries will advance our understanding
@@ -46,12 +50,13 @@ Analyze this research content and extract key concepts, entities, and important 
 CONTENT:
 {new_content}
 
-Extract and return a list called `key_concepts` that includes:
-- Legal concepts, articles, statutes, or regulations
-- Names of people, organizations, institutions
-- Numbers, dates, or other specific information
-- Technical terms or domain-specific vocabulary
-- Cross-references to related research topics
+Extract and return:
+1. Key legal concepts, articles, statutes, or regulations mentioned
+2. Important names, organizations, or institutions
+3. Specific numbers, dates, or quantitative information
+4. Technical terms or specialized vocabulary
+5. Cross-references to other important topics for further research
+
 
 Return: key_concepts: List[str]
 """
@@ -70,13 +75,25 @@ EXISTING SUMMARY:
 NEW RESEARCH FINDINGS:
 {new_information}
 
-Create and return a structured summary with the following fields:
-- main_answer: A direct response to the user's question
-- key_findings: Most important research discoveries
-- supporting_evidence: Cited sources and details
-- related_concepts: Topics that provide context
-- knowledge_gaps: Areas needing further research
-- confidence_level: One of "Low", "Medium", "High"
+Create an UPDATED COMPREHENSIVE SUMMARY that:
+
+1. **DIRECTLY ADDRESSES** the original user question
+2. **INTEGRATES** new findings with existing knowledge
+3. **MAINTAINS** all important details and citations
+4. **IDENTIFIES** remaining knowledge gaps
+5. **SUGGESTS** areas for deeper investigation
+6. **ORGANIZES** information logically and clearly
+
+Structure your summary with these sections:
+- **Main Answer**: Direct response to the user's question based on current knowledge
+- **Key Findings**: Most important discoveries from research
+- **Supporting Evidence**: Citations and sources supporting the findings
+- **Related Concepts**: Connected topics that provide context
+- **Knowledge Gaps**: Areas requiring further investigation
+- **Confidence Level**: Assessment of how complete the answer is (Low/Medium/High)
+
+Ensure every claim is properly cited with source URLs when available.
+Return ONLY the updated summary, nothing else.
 """
         return prompt
 
@@ -90,12 +107,12 @@ CURRENT SUMMARY: {context.current_summary}
 ITERATIONS COMPLETED: {context.iteration_count}
 SOURCES CONSULTED: {len(context.used_sources)}
 
-Return these fields:
-- should_continue: True or False
-- completeness_score: Integer from 0 to 100
-- reasoning: Explanation of this score
-- missing_aspects: List of uncovered aspects
-- recommended_next_searches: List of suggested queries
+Rate the completeness on these criteria (1-10 scale):
+1. **Directness**: Does the summary directly answer the user's question?
+2. **Depth**: Is the information sufficiently detailed and comprehensive?
+3. **Authority**: Are the sources authoritative and credible?
+4. **Coverage**: Are all important aspects of the question covered?
+5. **Currency**: Is the information current and up-to-date?
 """
         return prompt
 
@@ -107,13 +124,11 @@ Evaluate the credibility and relevance of this source:
 SOURCE URL: {source_url}
 CONTENT PREVIEW: {content[:500]}...
 
-Return:
-- credibility_score: 0–10
-- relevance_score: 0–10
-- overall_quality: 0–10
-- source_type: "academic", "news", "government", "commercial", "blog", or "other"
-- recommendation: "include", "exclude", or "review"
-- reasoning: Brief explanation of your rating
+Rate this source on:
+1. **Credibility**: Is this from a reputable, authoritative source?
+2. **Relevance**: How relevant is this content to research topics?
+3. **Recency**: Is the information current and up-to-date?
+4. **Depth**: Does it provide substantial, detailed information?
 """
         return prompt
 
@@ -127,7 +142,11 @@ ORIGINAL QUERY: "{original_query}"
 PREVIOUS RESULTS SUMMARY:
 {chr(10).join(previous_results[:3]) if previous_results else "No previous results"}
 
-Return: refined_queries: A list of 2–3 improved search queries
+Create 2-3 refined search queries that:
+1. Are more specific and targeted
+2. Use different terminology or approach
+3. Focus on gaps in current results
+4. Avoid repeating ineffective searches
 """
         return prompt
 
@@ -144,8 +163,14 @@ RESEARCH SUMMARY:
 SOURCES CONSULTED: {len(context.used_sources)} sources
 RESEARCH DEPTH: {context.iteration_count} iterations
 
-Return a field:
-- final_answer: Clear, well-structured response that includes evidence, addresses limitations, and suggests related areas
+Provide a final answer that:
+1. Directly and clearly answers the original question
+2. Is well-structured and easy to understand
+3. Includes key supporting evidence with citations
+4. Acknowledges any limitations or uncertainties
+5. Suggests related topics for further exploration
+
+Format as a clear, comprehensive response suitable for the user.
 """
         return prompt
 
@@ -157,8 +182,8 @@ An error occurred during research. Suggest alternative approaches.
 ERROR CONTEXT: {error_context}
 ORIGINAL QUESTION: "{user_question}"
 
-Return:
-- alternatives: List of 3 strategies with a description and suggested queries
-- explanation: Why these alternatives might work better
-"""
+Suggest 3 alternative research strategies that could work around this issue:
+1. Different search terms or approaches
+2. Alternative information sources
+3. Modified research methodology"""
         return prompt

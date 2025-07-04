@@ -11,7 +11,6 @@ from pydantic_schemas import (
     ConceptExtractionResponse,
     ErrorRecoveryResponse,
     ErrorRecoveryStrategy,
-    FinalAnswerResponse,
     QueryRefinementResponse,
     ResearchCompletenessResponse,
     SearchStrategyResponse,
@@ -20,19 +19,21 @@ from pydantic_schemas import (
 from utils.prompts import PromptTemplates
 from dotenv import load_dotenv
 from langchain_core.language_models.chat_models import BaseChatModel
+
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 class LLMService:
     """Service for managing all interactions with language models"""
 
-    def __init__(self , model: BaseChatModel, config: ResearchConfig):
+    def __init__(self, model: BaseChatModel, config: ResearchConfig):
+        logger.info("Initializing LLMService...")
         self.config = config
         self.llm = model
 
-        # Wrap LLM with structured output models
         self.search_strategy_model = self.llm.with_structured_output(SearchStrategyResponse)
         self.key_concepts_model = self.llm.with_structured_output(ConceptExtractionResponse)
         self.research_completeness_model = self.llm.with_structured_output(ResearchCompletenessResponse)
@@ -40,10 +41,11 @@ class LLMService:
         self.error_recovery_model = self.llm.with_structured_output(ErrorRecoveryResponse)
         self.query_refinement_model = self.llm.with_structured_output(QueryRefinementResponse)
         self.comprehensive_summary_model = self.llm.with_structured_output(ComprehensiveSummaryResponse)
-        self.final_answer_model = self.llm.with_structured_output(FinalAnswerResponse)
 
         try:
+            logger.debug("Testing LLM connectivity...")
             self.llm.invoke("Simple test")
+            logger.info("LLM connection established successfully.")
         except Exception as e:
             logger.error("Failed to connect to LLM", exc_info=True)
             raise RuntimeError("LLM connection failed, check your API key and model configuration.") from e
@@ -51,10 +53,12 @@ class LLMService:
         self.prompts = PromptTemplates()
 
     def invoke_json(self, prompt: str) -> Dict[str, Any]:
-        """Invoke the LLM with a JSON prompt and return parsed response"""
+        logger.debug("Invoking LLM with JSON prompt.")
         try:
+            logger.debug(f"Prompt: {prompt}")
             response = self.llm.invoke(prompt)
             content = response.content.replace("```json", "").replace("```", "").strip()
+            logger.debug(f"LLM response content: {content}")
             return json.loads(content)
         except json.JSONDecodeError as e:
             logger.error("Failed to parse JSON response", exc_info=True)
@@ -64,18 +68,18 @@ class LLMService:
             raise RuntimeError("LLM invocation failed") from e
 
     def generate_search_strategy(self, context: ResearchContext) -> Dict[str, Any]:
-        """Generate strategic search queries based on research context"""
+        logger.info("Generating search strategy...")
         try:
             prompt = self.prompts.search_strategy_prompt(context, self.config.max_iterations)
+            logger.debug(f"Search strategy prompt: {prompt}")
             strategy = self.search_strategy_model.invoke(prompt)
+            logger.debug(f"Search strategy model output: {strategy}")
 
-            # Validate required fields exist
             for field in ["search_queries", "research_rationale", "expected_findings"]:
                 if getattr(strategy, field, None) is None:
                     raise ValueError(f"Missing required field '{field}' in strategy response")
 
             return strategy.dict()
-
         except (json.JSONDecodeError, ValidationError, ValueError) as e:
             logger.warning(f"Search strategy parsing failed: {e}", exc_info=True)
             fallback = SearchStrategyResponse(
@@ -89,13 +93,16 @@ class LLMService:
             raise
 
     def extract_key_concepts(self, content: str) -> List[str]:
-        """Extract key concepts from research content"""
+        logger.info("Extracting key concepts...")
         if not self.config.enable_concept_extraction:
+            logger.info("Concept extraction disabled in config.")
             return []
 
         try:
             prompt = self.prompts.concept_extraction_prompt(content)
+            logger.debug(f"Concept extraction prompt: {prompt}")
             concepts = self.key_concepts_model.invoke(prompt)
+            logger.debug(f"Extracted concepts: {concepts}")
             return concepts.key_concepts if hasattr(concepts, 'key_concepts') else []
         except (json.JSONDecodeError, ValidationError) as e:
             logger.warning(f"Concept extraction parsing failed: {e}", exc_info=True)
@@ -105,13 +112,16 @@ class LLMService:
             return []
 
     def update_summary(self, context: ResearchContext, new_information: str) -> str:
-        """Update the comprehensive summary with new research findings"""
+        logger.info("Updating summary...")
         if not new_information.strip():
+            logger.debug("No new information provided. Returning current summary.")
             return context.current_summary or ""
 
         try:
             prompt = self.prompts.comprehensive_summary_prompt(context, new_information)
+            logger.debug(f"Comprehensive summary prompt: {prompt}")
             updated_obj = self.comprehensive_summary_model.invoke(prompt)
+            logger.debug(f"Updated summary object: {updated_obj}")
             return updated_obj.main_answer.strip() if hasattr(updated_obj, 'main_answer') else context.current_summary or ""
         except (ValidationError, json.JSONDecodeError) as e:
             logger.warning(f"Summary update parsing failed: {e}", exc_info=True)
@@ -121,10 +131,12 @@ class LLMService:
             return context.current_summary or ""
 
     def assess_research_completeness(self, context: ResearchContext) -> ResearchAssessment:
-        """Assess whether research is complete enough to answer the question"""
+        logger.info("Assessing research completeness...")
         try:
             prompt = self.prompts.research_completeness_prompt(context)
+            logger.debug(f"Research completeness prompt: {prompt}")
             data = self.research_completeness_model.invoke(prompt)
+            logger.debug(f"Completeness data: {data}")
             score = data.completeness_score if hasattr(data, 'completeness_score') else 0
 
             if score >= 80:
@@ -134,7 +146,7 @@ class LLMService:
             else:
                 confidence = ConfidenceLevel.LOW
 
-            return ResearchAssessment(
+            assessment = ResearchAssessment(
                 should_continue=data.should_continue,
                 completeness_score=score,
                 reasoning=data.reasoning,
@@ -142,6 +154,8 @@ class LLMService:
                 recommended_searches=data.recommended_next_searches,
                 confidence_level=confidence,
             )
+            logger.debug(f"Assessment result: {assessment}")
+            return assessment
         except (ValidationError, json.JSONDecodeError) as e:
             logger.warning(f"Research completeness parsing failed: {e}", exc_info=True)
             return ResearchAssessment(
@@ -157,13 +171,16 @@ class LLMService:
             raise
 
     def validate_source(self, source_url: str, content: str) -> Dict[str, Any]:
-        """Validate the credibility and relevance of a source"""
+        logger.info(f"Validating source: {source_url}")
         if not self.config.enable_source_validation:
+            logger.debug("Source validation disabled in config.")
             return {"overall_quality": 7, "recommendation": "include"}
 
         try:
             prompt = self.prompts.source_validation_prompt(source_url, content)
+            logger.debug(f"Source validation prompt: {prompt}")
             validation = self.source_validation_model.invoke(prompt)
+            logger.debug(f"Validation result: {validation}")
             return validation.dict()
         except (ValidationError, json.JSONDecodeError) as e:
             logger.warning(f"Source validation parsing failed: {e}", exc_info=True)
@@ -173,11 +190,13 @@ class LLMService:
             return {"overall_quality": 5, "recommendation": "review", "reasoning": str(e)}
 
     def generate_final_answer(self, context: ResearchContext) -> str:
-        """Generate a final, polished answer based on all research"""
+        logger.info("Generating final answer...")
         try:
             prompt = self.prompts.final_answer_prompt(context)
-            final_obj = self.final_answer_model.invoke(prompt)
-            return final_obj.final_answer.strip() if hasattr(final_obj, 'final_answer') else context.current_summary or ""
+            logger.debug(f"Final answer prompt: {prompt}")
+            final_answer = self.llm.invoke(prompt)
+            logger.debug(f"Final answer: {final_answer}")
+            return final_answer.strip()
         except (ValidationError, json.JSONDecodeError) as e:
             logger.warning(f"Final answer parsing failed: {e}", exc_info=True)
             return context.current_summary or ""
@@ -186,31 +205,32 @@ class LLMService:
             return context.current_summary or ""
 
     def handle_error_recovery(self, error_context: str, user_question: str) -> Dict[str, Any]:
-        """Generate alternative approaches when errors occur"""
+        logger.info("Handling error recovery...")
         try:
             prompt = self.prompts.error_recovery_prompt(error_context, user_question)
+            logger.debug(f"Error recovery prompt: {prompt}")
             recovery = self.error_recovery_model.invoke(prompt)
+            logger.debug(f"Recovery strategy: {recovery}")
             return recovery.dict()
         except (ValidationError, json.JSONDecodeError) as e:
             logger.warning(f"Error recovery parsing failed: {e}", exc_info=True)
-            fallback = ErrorRecoveryResponse(
-                alternatives=[ErrorRecoveryStrategy(strategy="Basic keyword search", queries=[user_question])],
-                explanation="Fallback due to error recovery failure",
-            )
-            return fallback.dict()
         except Exception as e:
             logger.error("Error in error recovery", exc_info=True)
-            fallback = ErrorRecoveryResponse(
-                alternatives=[ErrorRecoveryStrategy(strategy="Basic keyword search", queries=[user_question])],
-                explanation="Fallback due to error recovery failure",
-            )
-            return fallback.dict()
+
+        fallback = ErrorRecoveryResponse(
+            alternatives=[ErrorRecoveryStrategy(strategy="Basic keyword search", queries=[user_question])],
+            explanation="Fallback due to error recovery failure",
+        )
+        logger.debug(f"Returning fallback recovery strategy: {fallback}")
+        return fallback.dict()
 
     def refine_query(self, original_query: str, previous_results: List[str]) -> List[str]:
-        """Refine search queries based on previous results"""
+        logger.info("Refining query...")
         try:
             prompt = self.prompts.query_refinement_prompt(original_query, previous_results)
+            logger.debug(f"Query refinement prompt: {prompt}")
             refined = self.query_refinement_model.invoke(prompt)
+            logger.debug(f"Refined queries: {refined}")
             return refined.refined_queries if hasattr(refined, 'refined_queries') else [original_query]
         except (ValidationError, json.JSONDecodeError) as e:
             logger.warning(f"Query refinement parsing failed: {e}", exc_info=True)

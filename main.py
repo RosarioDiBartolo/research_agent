@@ -1,10 +1,10 @@
 
 # === USAGE EXAMPLE ===
-from langchain_ollama import OllamaLLM
 from core.agent import ResearchAgent
 from core.models import ResearchConfig
 
-from models import gemini as model
+from models import mistral as model
+
 
 def main():
     """Example usage of the Advanced Research Agent"""
