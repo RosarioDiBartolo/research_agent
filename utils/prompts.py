@@ -1,5 +1,5 @@
 from typing import List, Tuple
-from core.models import ResearchContext  # Assuming your ResearchContext is defined here
+from core.schemas import ResearchContext  # Assuming your ResearchContext is defined here
 
 
 
@@ -43,9 +43,11 @@ Return your response in this format:
         return prompt
 
     @staticmethod
-    def concept_extraction_prompt(new_content: str) -> str:
+    def concept_extraction_prompt(user_question, new_content: str) -> str:
         prompt = f"""
-Analyze this research content and extract key concepts, entities, and important details:
+Analyze this research content and extract key concepts, entities, and important details taking into account the original user question:
+ORIGINAL USER QUESTION: 
+"{user_question}"
 
 CONTENT:
 {new_content}
@@ -85,7 +87,7 @@ Create an UPDATED COMPREHENSIVE SUMMARY that:
 6. **ORGANIZES** information logically and clearly
 
 Structure your summary with these sections:
-- **Main Answer**: Direct response to the user's question based on current knowledge
+- **Main Answer**: Direct response to the user's original question based on current knowledge
 - **Key Findings**: Most important discoveries from research
 - **Supporting Evidence**: Citations and sources supporting the findings
 - **Related Concepts**: Connected topics that provide context

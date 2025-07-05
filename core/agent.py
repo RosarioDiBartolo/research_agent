@@ -6,7 +6,7 @@ import logging
 from typing import List, Dict, Any
 from datetime import datetime
 
-from core.models import (
+from core.schemas import (
     ResearchContext, ResearchResult, ResearchConfig, 
     ResearchStatus, IterationResult, SearchQuery
 )
@@ -58,10 +58,9 @@ class ResearchAgent:
         try:
             # Main research loop
             while self._should_continue_research(context):
-                context.iteration_count += 1
                 
                 if self.config.verbose:
-                    print(f"\n🔄 ITERATION {context.iteration_count}/{self.config.max_iterations}")
+                    print(f"\n🔄 ITERATION {context.iteration_count + 1}/{self.config.max_iterations}")
                     print("-" * 50)
                 
                 # Perform research iteration
@@ -92,7 +91,8 @@ class ResearchAgent:
 
                 print("\n--Current Summary--")
                 print( context.current_summary, end="\n")
-            
+                context.iteration_count += 1
+
             # Finalize research
             context.status = ResearchStatus.COMPLETED
             context.end_time = datetime.now()
@@ -139,15 +139,14 @@ class ResearchAgent:
         strategy = self.llm_service.generate_search_strategy(context)
         
         # Create search queries
-        search_queries = []
-        for query_text in strategy["search_queries"]:
-            search_query = SearchQuery(
+        search_queries = [  SearchQuery(
                 query=query_text,
                 rationale=strategy["research_rationale"],
                 expected_results=strategy["expected_findings"],
                 iteration=context.iteration_count
-            )
-            search_queries.append(search_query)
+            ) for query_text in strategy["search_queries"] ]
+             
+         
         
         # Execute searches
         search_results_by_query = self.search_service.execute_multiple_searches(
@@ -193,10 +192,14 @@ class ResearchAgent:
         
         # Format new information for summary update
         new_information = format_search_results(iteration_result.search_results)
+        print(f"🔍 New information found: {len(new_information)} characters")
         
         # Update summary with new findings
+        old = context.current_summary 
         context.current_summary = self.llm_service.update_summary(context, new_information)
-        
+        print(f"Current Summary: {old}")
+
+        print(f"📝 Updated Summary: {context.current_summary[:100]}...")  # Show first 100 chars
         if self.config.verbose:
             print(f"📚 Added {iteration_result.new_sources_count} new sources")
             print(f"🧠 Found {len(iteration_result.key_concepts_found)} new concepts")

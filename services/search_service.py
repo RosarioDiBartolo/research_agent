@@ -5,12 +5,11 @@ Search service for handling web search operations.
 import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-import asyncio
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
 from langchain_tavily import TavilySearch
 
-from core.models import SearchResult, SearchQuery, ResearchConfig
+from core.schemas import SearchResult,  ResearchConfig
 
 
 logger = logging.getLogger(__name__)
@@ -57,10 +56,11 @@ class SearchService:
         for query in queries:
             if self.config.verbose:
                 print(f"🔍 Searching: {query}")
-                
+            
+
             raw_results = self.execute_search(query)
 
-
+            
             processed_results = self._process_search_results(raw_results, query)
 
            

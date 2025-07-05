@@ -1,10 +1,12 @@
 
 # === USAGE EXAMPLE ===
 from core.agent import ResearchAgent
-from core.models import ResearchConfig
+from core.schemas import ResearchConfig
 
-from models import mistral as model
+from models import gemini as model
+from utils.logging import setup_logging
 
+setup_logging()  # Set up logging at the start of your script
 
 def main():
     """Example usage of the Advanced Research Agent"""
@@ -21,7 +23,7 @@ def main():
     
     # Example research questions
     questions = [
-        "Python main concepts and best practices",
+        "All python built-in functions",
        ]
     
     # Conduct research

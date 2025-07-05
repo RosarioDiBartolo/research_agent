@@ -6,31 +6,45 @@ from constant import GeminiKey , AIMLKEY, MistralKey
 
 from langchain_mistralai import ChatMistralAI
 
-AiMl = ChatOpenAI(
-        model="gpt-4o",
-        temperature=0.2,
-        api_key= AIMLKEY,
-        base_url="https://api.aimlapi.com/v1",
-        verbose=True
-    )
+from langchain.chat_models import ChatOpenAI
+from langchain.globals import set_llm_cache
+from langchain.cache import SQLiteCache
 
-print(MistralKey)
-mistral = ChatMistralAI(
+from services.llm_log import LoggingLLMWrapper
+
+# Enable caching to file
+set_llm_cache(SQLiteCache(database_path=".model_cache.db"))
+ 
+temperature = 0
+AiMl = LoggingLLMWrapper("gpt-4o", ChatOpenAI(
+    model="gpt-4o",
+    temperature=temperature,
+    api_key=AIMLKEY,
+    base_url="https://api.aimlapi.com/v1",
+    verbose=True
+))
+
+mistral = LoggingLLMWrapper("devstral-small-2505", ChatMistralAI(
     model="devstral-small-2505",
-    api_key=MistralKey,  # Use the Mistral API key
-    temperature=0,
+    api_key=MistralKey,
+    temperature=temperature,
     max_retries=2,
-    # other params...
-)
+))
 
-deeepSeek =  ChatOllama(
-        model= "deepseek-r1:1.5b",
-        temperature=0.2,
-        verbose=False
-    )
+deeepSeek = LoggingLLMWrapper("deepseek-r1", ChatOllama(
+    model="deepseek-r1:1.5b",
+    temperature=temperature,
+    verbose=False
+))
 
-gemini = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
-            google_api_key=GeminiKey,  # Use the Gemini API key
-            temperature=0.2,
-        )
+gemma = LoggingLLMWrapper("gemma-2b", ChatOllama(
+    model="gemma:2b",
+    temperature=temperature,
+    verbose=False
+))
+
+gemini = LoggingLLMWrapper("gemini-1.5-flash", ChatGoogleGenerativeAI(
+    model="gemini-1.5-flash",
+    google_api_key=GeminiKey,
+    temperature=temperature,
+))
