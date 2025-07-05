@@ -76,7 +76,7 @@ class LLMService:
 
         try:
             prompt = self.prompts.comprehensive_summary_prompt(context, new_information)
-            updated_summary = self.llm.invoke(prompt) 
+            updated_summary = self.llm.invoke(prompt).content.strip()
             return   updated_summary 
         except (ValidationError, json.JSONDecodeError):
             return context.current_summary or ""

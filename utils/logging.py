@@ -27,7 +27,7 @@ def setup_logging():
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(ColorFormatter("%(asctime)s %(message)s"))
 
-    file_handler = logging.FileHandler("model_invocations.log")
+    file_handler = logging.FileHandler("model_invocations.log", encoding="utf-8")
     file_handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
 
     logging.basicConfig(
